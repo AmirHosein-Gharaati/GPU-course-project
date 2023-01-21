@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <stdio.h>
 
 /**
  * Function that receives the size and the array_type of the
@@ -102,4 +103,18 @@ void init_almost_ordered_array(int *array, int size)
     {
         array[i] = rand() % (size - ninety_percent_size) + ninety_percent_size;
     }
+}
+
+/**
+ * Function that prints an array with integer type
+ * @param int* array Reference to the array that will be printed
+ * @param int  size  Number of elements
+ */
+void print_array(int *array, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ", array[i]);
+    }
+    printf("\n");
 }

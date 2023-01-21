@@ -11,5 +11,6 @@ void init_random_array(int *array, int size);
 void init_ascending_array(int *array, int size);
 void init_descending_array(int *array, int size);
 void init_almost_ordered_array(int *array, int size);
+void print_array(int *array, int size);
 
 #endif
