@@ -116,7 +116,7 @@ void print_array(int *array, int size)
     {
         printf("%d ", array[i]);
     }
-    printf("\n");
+    printf("\n===============\n");
 }
 
 /**
