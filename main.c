@@ -26,6 +26,7 @@ int main(int argc, char **argv)
     // print arrays
 
     free(options);
+    free(array);
 
     return 0;
 }
