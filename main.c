@@ -18,13 +18,13 @@ int main(int argc, char **argv)
     get_args(argc, argv, options);
 
     int *array = generate_array(options->size, options->array_type);
-
     int *array_copy = clone_array(array, options->size);
 
-    // sort array
     sort_array(array, options->size, options->method);
 
     // print arrays
+    print_array(array, options->size);
+    print_array(array_copy, options->size);
 
     free(options);
     free(array);
