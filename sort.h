@@ -15,5 +15,6 @@ extern clock_t start, end;
 extern double elapsed_time;
 
 int *sort_array(int *array, int size, enum SortMethod method);
+void merge_sort(int *array, int number_of_elements);
 
 #endif
