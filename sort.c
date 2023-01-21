@@ -9,6 +9,33 @@ double elapsed_time;
 
 void top_down_merge(int *array, int start, int end, int *temp)
 {
+    int n = end - start;
+    if (n < 2)
+    {
+        return;
+    }
+
+    int middle = (end + start) / 2;
+
+    top_down_merge(array, start, middle, temp);
+    top_down_merge(array, middle, end, temp);
+
+    int i = start, j = middle;
+    for (int index = start; index < end; index++)
+    {
+        if (i < middle && (j >= end || array[i] <= array[j]))
+        {
+            temp[index] = array[i];
+            i++;
+        }
+        else
+        {
+            temp[index] = array[j];
+            j++;
+        }
+    }
+
+    memcpy((array + start), (temp + start), sizeof(int) * (n));
 }
 
 void merge_sort(int *array, int number_of_elements)
