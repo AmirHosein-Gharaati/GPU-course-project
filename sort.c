@@ -70,3 +70,8 @@ int *sort_array(int *array, int size, enum SortMethod method)
     elapsed_time = (((double)(end - start)) / CLOCKS_PER_SEC);
     return array;
 }
+
+int get_elapsed_time()
+{
+    return elapsed_time;
+}
