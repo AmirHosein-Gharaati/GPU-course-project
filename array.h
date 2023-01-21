@@ -6,4 +6,7 @@
 #define DESCENDING_ORDER 2
 #define ALMOST_ORDERED 3
 
+int *generate_array(int size, int array_type);
+void init_random_array(int *array, int size);
+
 #endif

@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
     get_args(argc, argv, options);
 
-    // generate array
+    int *array = generate_array(options->size, options->array_type);
 
     // make a copy of array to print it before sorted array
 
