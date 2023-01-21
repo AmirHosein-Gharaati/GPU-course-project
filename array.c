@@ -29,6 +29,9 @@ int *generate_array(int size, int array_type)
         case DESCENDING_ORDER:
             init_descending_array(arr, size);
 
+        case ALMOST_ORDERED:
+            init_almost_ordered_array(arr, size);
+
         default:
             break;
         }
@@ -76,5 +79,27 @@ void init_descending_array(int *array, int size)
     for (i = 0, j = size; i < size; i++, j--)
     {
         array[i] = j;
+    }
+}
+
+/**
+ * Function that fills 90% of an array with integers in ascending order
+ * an the other 10% with random integers
+ * @param int* array Reference to the array that will be filled
+ * @param int  size  Number of elements
+ */
+void init_almost_ordered_array(int *array, int size)
+{
+    srand(time(NULL));
+    int ninety_percent_size = (int)size / 10 * 9;
+    int i = 0;
+    for (i = 1; i <= ninety_percent_size; i++)
+    {
+        array[i] = i;
+    }
+
+    for (i = ninety_percent_size; i < size; i++)
+    {
+        array[i] = rand() % (size - ninety_percent_size) + ninety_percent_size;
     }
 }
