@@ -30,6 +30,11 @@ int *generate_array(int size, int array_type)
     return arr;
 }
 
+/**
+ * Function that fills an array with random integers
+ * @param int* array Reference to the array that will be filled
+ * @param int  size  Number of elements
+ */
 void init_random_array(int *array, int size)
 {
     srand(time(NULL));
