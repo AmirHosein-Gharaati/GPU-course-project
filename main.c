@@ -17,5 +17,15 @@ int main(int argc, char **argv)
 
     get_args(argc, argv, options);
 
+    // generate array
+
+    // make a copy of array to print it before sorted array
+
+    // sort array
+
+    // print arrays
+
+    free(options);
+
     return 0;
 }
