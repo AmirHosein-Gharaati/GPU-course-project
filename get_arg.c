@@ -1,5 +1,7 @@
 #include "get_arg.h"
 #include <getopt.h>
+#include <string.h>
+#include <stdlib.h>
 
 static const char *optString = "a:n:s:P";
 
