@@ -7,8 +7,15 @@ double elapsed_time;
 // int numberOfComparisons;
 // int numberOfSwaps;
 
+void top_down_merge(int *array, int start, int end, int *temp)
+{
+}
+
 void merge_sort(int *array, int number_of_elements)
 {
+    int *temp = malloc(number_of_elements * sizeof(int));
+    top_down_merge(array, 0, number_of_elements, temp);
+    free(temp);
 }
 
 /**
