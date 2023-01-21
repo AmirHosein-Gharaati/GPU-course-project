@@ -22,6 +22,10 @@ int *generate_array(int size, int array_type)
             init_random_array(arr, size);
             break;
 
+        case ASCENDING_ORDER:
+            init_ascending_array(arr, size);
+            break;
+
         default:
             break;
         }
@@ -42,5 +46,18 @@ void init_random_array(int *array, int size)
     for (i = 0; i < size; i++)
     {
         array[i] = rand() % size;
+    }
+}
+
+/**
+ * Function that fills an array with integers in ascending order
+ * @param int* array Reference to the array that will be filled
+ * @param int  size  Number of elements
+ */
+void init_ascending_array(int *array, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        array[i] = i;
     }
 }
