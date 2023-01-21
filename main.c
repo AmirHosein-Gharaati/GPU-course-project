@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
     int *array = generate_array(options->size, options->array_type);
 
-    // make a copy of array to print it before sorted array
+    int *array_copy = clone_array(array, options->size);
 
     // sort array
 
@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 
     free(options);
     free(array);
+    free(array_copy);
 
     return 0;
 }

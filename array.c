@@ -118,3 +118,20 @@ void print_array(int *array, int size)
     }
     printf("\n");
 }
+
+/**
+ * Function that clones an array and copies elements of source array to new one
+ * @param int* array Reference to the array that will be cloned
+ * @param int  size  Number of elements
+ */
+int *clone_array(int *array, int size)
+{
+    int *new_arr = malloc(size * sizeof(int));
+
+    for (int i = 0; i < size; i++)
+    {
+        new_arr[i] = array[i];
+    }
+
+    return new_arr;
+}
