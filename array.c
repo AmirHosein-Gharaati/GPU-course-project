@@ -27,7 +27,7 @@ int *generate_array(int size, int array_type)
             break;
 
         case DESCENDING_ORDER:
-            init_descending_order(arr, size);
+            init_descending_array(arr, size);
 
         default:
             break;
@@ -70,7 +70,7 @@ void init_ascending_array(int *array, int size)
  * @param int* array Reference to the array that will be filled
  * @param int  size  Number of elements
  */
-void init_descending_order(int *array, int size)
+void init_descending_array(int *array, int size)
 {
     int i, j;
     for (i = 0, j = size; i < size; i++, j--)
