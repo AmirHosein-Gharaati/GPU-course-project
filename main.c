@@ -22,6 +22,7 @@ int main(int argc, char **argv)
     int *array_copy = clone_array(array, options->size);
 
     // sort array
+    sort_array(array, options->size, options->method);
 
     // print arrays
 
