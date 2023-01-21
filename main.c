@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "get_arg.h"
+#include "array.h"
+#include "sort.h"
 
 int main(int argc, char **argv)
 {
@@ -24,6 +26,8 @@ int main(int argc, char **argv)
 
     print_array(array_copy, options->size);
     print_array(array, options->size);
+
+    printf("Elapsed time: %f ms.\n", get_elapsed_time());
 
     free(options);
     free(array);

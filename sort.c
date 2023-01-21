@@ -1,8 +1,9 @@
 #include "sort.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <sys/time.h>
 
-clock_t start, end;
 double elapsed_time;
 // int numberOfComparisons;
 // int numberOfSwaps;
@@ -55,23 +56,26 @@ void merge_sort(int *array, int number_of_elements)
  */
 int *sort_array(int *array, int size, enum SortMethod method)
 {
+    struct timeval start, end;
+
     switch (method)
     {
     case MERGE:
-        start = clock();
+        gettimeofday(&start, NULL);
         merge_sort(array, size);
-        end = clock();
+        gettimeofday(&end, NULL);
         break;
 
     default:
         break;
     }
 
-    elapsed_time = (((double)(end - start)) / CLOCKS_PER_SEC);
+    elapsed_time = (end.tv_sec - start.tv_sec) * 1000.0;
+    elapsed_time += (end.tv_usec - start.tv_usec) / 1000.0;
     return array;
 }
 
-int get_elapsed_time()
+double get_elapsed_time()
 {
     return elapsed_time;
 }
