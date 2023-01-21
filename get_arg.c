@@ -53,7 +53,7 @@ void get_args(int argc, char **argv, Options *options)
  */
 int get_sort_method(char method[])
 {
-    int selected_method;
+    enum SortMethod selected_method;
 
     if (strcmp(method, "merge") == 0)
         selected_method = MERGE;

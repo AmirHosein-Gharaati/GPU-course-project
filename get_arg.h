@@ -6,10 +6,10 @@
 
 struct opt
 {
-    int method;
     int size;
     int array_type;
     int print_vector;
+    enum SortMethod method;
 };
 
 typedef struct opt Options;

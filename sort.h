@@ -1,7 +1,12 @@
 #ifndef SORT
 #define SORT
 
-#define MERGE 1
-#define UNDEFINED -1
+enum SortMethod
+{
+    MERGE = 1,
+    UNDEFINED = -1
+};
+
+int *sort_array(int *array, int size, enum SortMethod method);
 
 #endif
