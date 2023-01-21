@@ -26,6 +26,9 @@ int *generate_array(int size, int array_type)
             init_ascending_array(arr, size);
             break;
 
+        case DESCENDING_ORDER:
+            init_descending_order(arr, size);
+
         default:
             break;
         }
@@ -59,5 +62,19 @@ void init_ascending_array(int *array, int size)
     for (int i = 0; i < size; i++)
     {
         array[i] = i;
+    }
+}
+
+/**
+ * Function that fills an array with integers in ascending order
+ * @param int* array Reference to the array that will be filled
+ * @param int  size  Number of elements
+ */
+void init_descending_order(int *array, int size)
+{
+    int i, j;
+    for (i = 0, j = size; i < size; i++, j--)
+    {
+        array[i] = j;
     }
 }
