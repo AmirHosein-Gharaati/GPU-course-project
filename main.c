@@ -23,8 +23,8 @@ int main(int argc, char **argv)
     sort_array(array, options->size, options->method);
 
     // print arrays
-    print_array(array, options->size);
     print_array(array_copy, options->size);
+    print_array(array, options->size);
 
     free(options);
     free(array);
