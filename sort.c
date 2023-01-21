@@ -5,8 +5,6 @@
 #include <sys/time.h>
 
 double elapsed_time;
-// int numberOfComparisons;
-// int numberOfSwaps;
 
 void top_down_merge(int *array, int start, int end, int *temp)
 {

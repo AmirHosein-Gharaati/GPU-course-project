@@ -9,8 +9,6 @@ enum SortMethod
     UNDEFINED = -1
 };
 
-// extern int numberOfComparisons;
-// extern int numberOfSwaps;
 extern double elapsed_time;
 
 int *sort_array(int *array, int size, enum SortMethod method);
