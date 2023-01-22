@@ -1,4 +1,5 @@
 #include "sort.h"
+#include "cuda_sort.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,6 +62,12 @@ int *sort_array(int *array, int size, enum SortMethod method)
     case MERGE:
         gettimeofday(&start, NULL);
         merge_sort(array, size);
+        gettimeofday(&end, NULL);
+        break;
+
+    case GPUMERGE:
+        gettimeofday(&start, NULL);
+        gpu_merge_sort(array, size);
         gettimeofday(&end, NULL);
         break;
 

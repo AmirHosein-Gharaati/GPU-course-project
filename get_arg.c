@@ -57,6 +57,8 @@ int get_sort_method(char method[])
 
     if (strcmp(method, "merge") == 0)
         selected_method = MERGE;
+    else if (strcmp(method, "gpumerge") == 0)
+        selected_method = GPUMERGE;
     else
         selected_method = UNDEFINED;
 

@@ -6,6 +6,7 @@
 enum SortMethod
 {
     MERGE = 1,
+    GPUMERGE = 2,
     UNDEFINED = -1
 };
 
