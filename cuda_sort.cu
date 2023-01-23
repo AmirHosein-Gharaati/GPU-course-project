@@ -1,3 +1,4 @@
+#include <iostream>
 #include <sys/time.h>
 #include "cuda_sort.h"
 
