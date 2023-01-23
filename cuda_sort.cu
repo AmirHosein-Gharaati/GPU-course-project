@@ -70,7 +70,7 @@ inline mergeSortResult_t mergeSortSuccess()
 
 inline mergeSortResult_t doMergeSortWithCuda(int *arr, unsigned int size_arg, int *dev_arr, int *dev_aux)
 {
-    const unsigned int last = size - 1;
+    const unsigned int last = size_arg - 1;
     const unsigned size = size_arg * sizeof(int);
     unsigned int threadCount;
     cudaError_t cudaStatus;
