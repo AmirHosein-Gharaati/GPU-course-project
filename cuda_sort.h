@@ -1,3 +1,3 @@
-#define MAX_DEPTH 16
+#include "cuda_runtime.h"
 
-void gpu_merge_sort(int *array, int size);
+cudaError_t mergeSortWithCuda(int *arr, unsigned int size);
