@@ -34,20 +34,20 @@ extern "C" void mergesort(int *data, int size)
     blocksPerGrid.z = 1;
 
     // Actually allocate the two arrays
-    (cudaMalloc((void **)&D_data, size * sizeof(int)));
-    (cudaMalloc((void **)&D_swp, size * sizeof(int)));
+    checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(int)));
+    checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(int)));
 
     // Copy from our input list into the first array
-    (cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
 
     //
     // Copy the thread / block info to the GPU as well
     //
-    (cudaMalloc((void **)&D_threads, sizeof(dim3)));
-    (cudaMalloc((void **)&D_blocks, sizeof(dim3)));
+    checkCudaErrors(cudaMalloc((void **)&D_threads, sizeof(dim3)));
+    checkCudaErrors(cudaMalloc((void **)&D_blocks, sizeof(dim3)));
 
-    (cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
-    (cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
 
     int *A = D_data;
     int *B = D_swp;
@@ -76,11 +76,11 @@ extern "C" void mergesort(int *data, int size)
     // Get the list back from the GPU
     //
 
-    (cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
 
     // Free the GPU memory
-    (cudaFree(A));
-    (cudaFree(B));
+    checkCudaErrors(cudaFree(A));
+    checkCudaErrors(cudaFree(B));
 
     printf("%lf miliseconds\n", (double)tm() / 1000);
 }
