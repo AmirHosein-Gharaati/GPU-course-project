@@ -1,5 +1,5 @@
-#include <cuda_sort.h>
 #include <sys/time.h>
+#include "cuda_sort.h"
 
 void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
 {
