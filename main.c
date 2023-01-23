@@ -24,8 +24,8 @@ int main(int argc, char **argv)
 
     sort_array(array, options->size, options->method);
 
-    print_array(array_copy, options->size);
-    print_array(array, options->size);
+    // print_array(array_copy, options->size);
+    // print_array(array, options->size);
 
     printf("Elapsed time: %f ms.\n", get_elapsed_time());
 
