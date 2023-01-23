@@ -1,6 +1,5 @@
 #include <sys/time.h>
 #include "cuda_sort.h"
-#include <helper_cuda.h>
 
 __global__ void gpu_mergesort(int *source, int *dest, int size, int width, int slices, dim3 *threads, dim3 *blocks);
 __device__ void gpu_bottomUpMerge(int *source, int *dest, int start, int middle, int end)
@@ -30,26 +29,26 @@ __device__ void gpu_bottomUpMerge(int *source, int *dest, int start, int middle,
 
     // Actually allocate the two arrays
     tm();
-    checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(int)));
-    checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(int)));
+    (cudaMalloc((void **)&D_data, size * sizeof(int)));
+    (cudaMalloc((void **)&D_swp, size * sizeof(int)));
     // if (verbose)
     //     std::cout << "cudaMalloc device lists: " << tm() << " microseconds\n";
 
     // Copy from our input list into the first array
-    checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
+    (cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
     // if (verbose)
     //     std::cout << "cudaMemcpy list to device: " << tm() << " microseconds\n";
 
     //
     // Copy the thread / block info to the GPU as well
     //
-    checkCudaErrors(cudaMalloc((void **)&D_threads, sizeof(dim3)));
-    checkCudaErrors(cudaMalloc((void **)&D_blocks, sizeof(dim3)));
+    (cudaMalloc((void **)&D_threads, sizeof(dim3)));
+    (cudaMalloc((void **)&D_blocks, sizeof(dim3)));
 
     // if (verbose)
     //     std::cout << "cudaMalloc device thread data: " << tm() << " microseconds\n";
-    checkCudaErrors(cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
+    (cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
+    (cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
 
     // if (verbose)
     //     std::cout << "cudaMemcpy thread data to device: " << tm() << " microseconds\n";
@@ -91,13 +90,13 @@ __device__ void gpu_bottomUpMerge(int *source, int *dest, int start, int middle,
     // Get the list back from the GPU
     //
     tm();
-    checkCudaErrors(cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
+    (cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
     // if (verbose)
     //     std::cout << "cudaMemcpy list back to host: " << tm() << " microseconds\n";
 
     // Free the GPU memory
-    checkCudaErrors(cudaFree(A));
-    checkCudaErrors(cudaFree(B));
+    (cudaFree(A));
+    (cudaFree(B));
     // if (verbose)
     //     std::cout << "cudaFree: " << tm() << " microseconds\n";
 }
