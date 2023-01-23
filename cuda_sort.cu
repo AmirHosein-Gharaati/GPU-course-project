@@ -3,6 +3,7 @@
 extern "C"
 {
 #include "cuda_sort.h"
+#include <stdio.h>
 }
 
 __global__ void gpu_mergesort(int *source, int *dest, int size, int width, int slices, dim3 *threads, dim3 *blocks);
@@ -33,16 +34,11 @@ extern "C" void mergesort(int *data, int size)
     blocksPerGrid.z = 1;
 
     // Actually allocate the two arrays
-    tm();
     (cudaMalloc((void **)&D_data, size * sizeof(int)));
     (cudaMalloc((void **)&D_swp, size * sizeof(int)));
-    // if (verbose)
-    //     std::cout << "cudaMalloc device lists: " << tm() << " microseconds\n";
 
     // Copy from our input list into the first array
     (cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
-    // if (verbose)
-    //     std::cout << "cudaMemcpy list to device: " << tm() << " microseconds\n";
 
     //
     // Copy the thread / block info to the GPU as well
@@ -50,13 +46,8 @@ extern "C" void mergesort(int *data, int size)
     (cudaMalloc((void **)&D_threads, sizeof(dim3)));
     (cudaMalloc((void **)&D_blocks, sizeof(dim3)));
 
-    // if (verbose)
-    //     std::cout << "cudaMalloc device thread data: " << tm() << " microseconds\n";
     (cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
     (cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
-
-    // if (verbose)
-    //     std::cout << "cudaMemcpy thread data to device: " << tm() << " microseconds\n";
 
     int *A = D_data;
     int *B = D_swp;
@@ -68,42 +59,29 @@ extern "C" void mergesort(int *data, int size)
     // Slice up the list and give pieces of it to each thread, letting the pieces grow
     // bigger and bigger until the whole list is sorted
     //
+    tm();
     for (int width = 2; width < (size << 1); width <<= 1)
     {
         int slices = size / ((nThreads)*width) + 1;
 
-        // if (verbose)
-        // {
-        //     std::cout << "mergeSort - width: " << width
-        //               << ", slices: " << slices
-        //               << ", nThreads: " << nThreads << '\n';
-        //     tm();
-        // }
-
         // Actually call the kernel
         gpu_mergesort<<<blocksPerGrid, threadsPerBlock>>>(A, B, size, width, slices, D_threads, D_blocks);
-
-        // if (verbose)
-        //     std::cout << "call mergesort kernel: " << tm() << " microseconds\n";
 
         // Switch the input / output arrays instead of copying them around
         A = A == D_data ? D_swp : D_data;
         B = B == D_data ? D_swp : D_data;
     }
+    printf("%d\n", tm());
 
     //
     // Get the list back from the GPU
     //
-    tm();
+
     (cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
-    // if (verbose)
-    //     std::cout << "cudaMemcpy list back to host: " << tm() << " microseconds\n";
 
     // Free the GPU memory
     (cudaFree(A));
     (cudaFree(B));
-    // if (verbose)
-    //     std::cout << "cudaFree: " << tm() << " microseconds\n";
 }
 
 // GPU helper function
