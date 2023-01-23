@@ -1,4 +1,3 @@
-#include <iostream>
 #include <sys/time.h>
 #include "cuda_sort.h"
 
@@ -18,13 +17,13 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     tm();
     checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(long)));
     checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(long)));
-    if (verbose)
-        std::cout << "cudaMalloc device lists: " << tm() << " microseconds\n";
+    // if (verbose)
+    //     std::cout << "cudaMalloc device lists: " << tm() << " microseconds\n";
 
     // Copy from our input list into the first array
     checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(long), cudaMemcpyHostToDevice));
-    if (verbose)
-        std::cout << "cudaMemcpy list to device: " << tm() << " microseconds\n";
+    // if (verbose)
+    //     std::cout << "cudaMemcpy list to device: " << tm() << " microseconds\n";
 
     //
     // Copy the thread / block info to the GPU as well
@@ -32,13 +31,13 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     checkCudaErrors(cudaMalloc((void **)&D_threads, sizeof(dim3)));
     checkCudaErrors(cudaMalloc((void **)&D_blocks, sizeof(dim3)));
 
-    if (verbose)
-        std::cout << "cudaMalloc device thread data: " << tm() << " microseconds\n";
+    // if (verbose)
+    //     std::cout << "cudaMalloc device thread data: " << tm() << " microseconds\n";
     checkCudaErrors(cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
     checkCudaErrors(cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
 
-    if (verbose)
-        std::cout << "cudaMemcpy thread data to device: " << tm() << " microseconds\n";
+    // if (verbose)
+    //     std::cout << "cudaMemcpy thread data to device: " << tm() << " microseconds\n";
 
     long *A = D_data;
     long *B = D_swp;
@@ -54,19 +53,19 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     {
         long slices = size / ((nThreads)*width) + 1;
 
-        if (verbose)
-        {
-            std::cout << "mergeSort - width: " << width
-                      << ", slices: " << slices
-                      << ", nThreads: " << nThreads << '\n';
-            tm();
-        }
+        // if (verbose)
+        // {
+        //     std::cout << "mergeSort - width: " << width
+        //               << ", slices: " << slices
+        //               << ", nThreads: " << nThreads << '\n';
+        //     tm();
+        // }
 
         // Actually call the kernel
         gpu_mergesort<<<blocksPerGrid, threadsPerBlock>>>(A, B, size, width, slices, D_threads, D_blocks);
 
-        if (verbose)
-            std::cout << "call mergesort kernel: " << tm() << " microseconds\n";
+        // if (verbose)
+        //     std::cout << "call mergesort kernel: " << tm() << " microseconds\n";
 
         // Switch the input / output arrays instead of copying them around
         A = A == D_data ? D_swp : D_data;
@@ -78,14 +77,14 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     //
     tm();
     checkCudaErrors(cudaMemcpy(data, A, size * sizeof(long), cudaMemcpyDeviceToHost));
-    if (verbose)
-        std::cout << "cudaMemcpy list back to host: " << tm() << " microseconds\n";
+    // if (verbose)
+    //     std::cout << "cudaMemcpy list back to host: " << tm() << " microseconds\n";
 
     // Free the GPU memory
     checkCudaErrors(cudaFree(A));
     checkCudaErrors(cudaFree(B));
-    if (verbose)
-        std::cout << "cudaFree: " << tm() << " microseconds\n";
+    // if (verbose)
+    //     std::cout << "cudaFree: " << tm() << " microseconds\n";
 }
 
 // GPU helper function
@@ -144,51 +143,6 @@ __device__ void gpu_bottomUpMerge(long *source, long *dest, long start, long mid
             j++;
         }
     }
-}
-
-// read data into a minimal linked list
-typedef struct
-{
-    int v;
-    void *next;
-} LinkNode;
-
-// helper function for reading numbers from stdin
-// it's 'optimized' not to check validity of the characters it reads in..
-long readList(long **list)
-{
-    tm();
-    long v, size = 0;
-    LinkNode *node = 0;
-    LinkNode *first = 0;
-    while (std::cin >> v)
-    {
-        LinkNode *next = new LinkNode();
-        next->v = v;
-        if (node)
-            node->next = next;
-        else
-            first = next;
-        node = next;
-        size++;
-    }
-
-    if (size)
-    {
-        *list = new long[size];
-        LinkNode *node = first;
-        long i = 0;
-        while (node)
-        {
-            (*list)[i++] = node->v;
-            node = (LinkNode *)node->next;
-        }
-    }
-
-    if (verbose)
-        std::cout << "read stdin: " << tm() << " microseconds\n";
-
-    return size;
 }
 
 //
