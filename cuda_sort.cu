@@ -91,7 +91,7 @@ extern "C" void mergesort(int *data, int size)
     checkCuda(cudaFree(A));
     checkCuda(cudaFree(B));
 
-    printf("%lf miliseconds\n", (double)tm() / 1000);
+    tm();
 }
 
 // GPU helper function
