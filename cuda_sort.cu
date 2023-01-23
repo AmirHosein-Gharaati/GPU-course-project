@@ -71,7 +71,7 @@ extern "C" void mergesort(int *data, int size)
         A = A == D_data ? D_swp : D_data;
         B = B == D_data ? D_swp : D_data;
     }
-    printf("%d\n", tm());
+    printf("%lf\n miliseconds", (double)tm() / 1000);
 
     //
     // Get the list back from the GPU
