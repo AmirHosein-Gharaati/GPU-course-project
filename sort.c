@@ -67,7 +67,7 @@ int *sort_array(int *array, int size, enum SortMethod method)
 
     case GPUMERGE:
         gettimeofday(&start, NULL);
-        mergesort(array, size, 32, 1);
+        mergesort(array, size);
         gettimeofday(&end, NULL);
         break;
 

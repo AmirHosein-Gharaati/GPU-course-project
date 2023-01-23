@@ -1,27 +1,38 @@
 #include <sys/time.h>
 #include "cuda_sort.h"
 
-void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
+void mergesort(int *data, int size)
 {
 
     //
     // Allocate two arrays on the GPU
     // we switch back and forth between them during the sort
     //
-    long *D_data;
-    long *D_swp;
+    int *D_data;
+    int *D_swp;
     dim3 *D_threads;
     dim3 *D_blocks;
 
+    dim3 threadsPerBlock;
+    dim3 blocksPerGrid;
+
+    threadsPerBlock.x = 32;
+    threadsPerBlock.y = 1;
+    threadsPerBlock.z = 1;
+
+    blocksPerGrid.x = 8;
+    blocksPerGrid.y = 1;
+    blocksPerGrid.z = 1;
+
     // Actually allocate the two arrays
     tm();
-    checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(long)));
-    checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(long)));
+    checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(int)));
+    checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(int)));
     // if (verbose)
     //     std::cout << "cudaMalloc device lists: " << tm() << " microseconds\n";
 
     // Copy from our input list into the first array
-    checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(long), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
     // if (verbose)
     //     std::cout << "cudaMemcpy list to device: " << tm() << " microseconds\n";
 
@@ -39,11 +50,11 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     // if (verbose)
     //     std::cout << "cudaMemcpy thread data to device: " << tm() << " microseconds\n";
 
-    long *A = D_data;
-    long *B = D_swp;
+    int *A = D_data;
+    int *B = D_swp;
 
-    long nThreads = threadsPerBlock.x * threadsPerBlock.y * threadsPerBlock.z *
-                    blocksPerGrid.x * blocksPerGrid.y * blocksPerGrid.z;
+    int nThreads = threadsPerBlock.x * threadsPerBlock.y * threadsPerBlock.z *
+                   blocksPerGrid.x * blocksPerGrid.y * blocksPerGrid.z;
 
     //
     // Slice up the list and give pieces of it to each thread, letting the pieces grow
@@ -51,7 +62,7 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     //
     for (int width = 2; width < (size << 1); width <<= 1)
     {
-        long slices = size / ((nThreads)*width) + 1;
+        int slices = size / ((nThreads)*width) + 1;
 
         // if (verbose)
         // {
@@ -76,7 +87,7 @@ void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
     // Get the list back from the GPU
     //
     tm();
-    checkCudaErrors(cudaMemcpy(data, A, size * sizeof(long), cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
     // if (verbose)
     //     std::cout << "cudaMemcpy list back to host: " << tm() << " microseconds\n";
 
@@ -103,14 +114,14 @@ __device__ unsigned int getIdx(dim3 *threads, dim3 *blocks)
 //
 // Perform a full mergesort on our section of the data.
 //
-__global__ void gpu_mergesort(long *source, long *dest, long size, long width, long slices, dim3 *threads, dim3 *blocks)
+__global__ void gpu_mergesort(int *source, int *dest, int size, int width, int slices, dim3 *threads, dim3 *blocks)
 {
     unsigned int idx = getIdx(threads, blocks);
-    long start = width * idx * slices,
-         middle,
-         end;
+    int start = width * idx * slices,
+        middle,
+        end;
 
-    for (long slice = 0; slice < slices; slice++)
+    for (int slice = 0; slice < slices; slice++)
     {
         if (start >= size)
             break;
@@ -126,11 +137,11 @@ __global__ void gpu_mergesort(long *source, long *dest, long size, long width, l
 // Finally, sort something
 // gets called by gpu_mergesort() for each slice
 //
-__device__ void gpu_bottomUpMerge(long *source, long *dest, long start, long middle, long end)
+__device__ void gpu_bottomUpMerge(int *source, int *dest, int start, int middle, int end)
 {
-    long i = start;
-    long j = middle;
-    for (long k = start; k < end; k++)
+    int i = start;
+    int j = middle;
+    for (int k = start; k < end; k++)
     {
         if (i < middle && (j >= end || source[i] < source[j]))
         {
