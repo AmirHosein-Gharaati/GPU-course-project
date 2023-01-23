@@ -12,7 +12,7 @@ int tm();
 
 extern "C" void mergesort(int *data, int size)
 {
-
+    tm();
     //
     // Allocate two arrays on the GPU
     // we switch back and forth between them during the sort
@@ -59,7 +59,7 @@ extern "C" void mergesort(int *data, int size)
     // Slice up the list and give pieces of it to each thread, letting the pieces grow
     // bigger and bigger until the whole list is sorted
     //
-    tm();
+
     for (int width = 2; width < (size << 1); width <<= 1)
     {
         int slices = size / ((nThreads)*width) + 1;
@@ -71,7 +71,6 @@ extern "C" void mergesort(int *data, int size)
         A = A == D_data ? D_swp : D_data;
         B = B == D_data ? D_swp : D_data;
     }
-    printf("%lf miliseconds\n", (double)tm() / 1000);
 
     //
     // Get the list back from the GPU
@@ -82,6 +81,8 @@ extern "C" void mergesort(int *data, int size)
     // Free the GPU memory
     (cudaFree(A));
     (cudaFree(B));
+
+    printf("%lf miliseconds\n", (double)tm() / 1000);
 }
 
 // GPU helper function
