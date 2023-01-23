@@ -122,9 +122,9 @@ inline mergeSortResult_t doMergeSortWithCuda(int *arr, unsigned int size_arg, in
     return mergeSortSuccess();
 }
 
-cudaError_t mergeSortWithCuda(int *arr, unsigned int size)
+cudaError_t mergeSortWithCuda(int *arr, unsigned int size_arg)
 {
-    const unsigned int size = size * sizeof(int);
+    const unsigned int size = size_arg * sizeof(int);
     int *dev_arr = 0;
     int *dev_aux = 0;
     cudaError_t cudaStatus;
