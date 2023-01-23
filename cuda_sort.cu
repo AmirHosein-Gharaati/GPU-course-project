@@ -1,167 +1,205 @@
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include <cuda_sort.h>
+#include <sys/time.h>
 
-#include <stdio.h>
-
-typedef struct mergeSortResult
+void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
 {
-    cudaError_t cudaStatus;
-    char *msg;
-} mergeSortResult_t;
 
-__global__ void mergeSortKernel(int *arr, int *aux, unsigned int blockSize, const unsigned int last)
-{
-    int x = threadIdx.x;
-    int start = blockSize * x;
-    int end = start + blockSize - 1;
-    int mid = start + (blockSize / 2) - 1;
-    int l = start, r = mid + 1, i = start;
+    //
+    // Allocate two arrays on the GPU
+    // we switch back and forth between them during the sort
+    //
+    long *D_data;
+    long *D_swp;
+    dim3 *D_threads;
+    dim3 *D_blocks;
 
-    if (end > last)
-    {
-        end = last;
-    }
-    if (start == end || end <= mid)
-    {
-        return;
-    }
+    // Actually allocate the two arrays
+    tm();
+    checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(long)));
+    checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(long)));
+    if (verbose)
+        std::cout << "cudaMalloc device lists: " << tm() << " microseconds\n";
 
-    while (l <= mid && r <= end)
+    // Copy from our input list into the first array
+    checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(long), cudaMemcpyHostToDevice));
+    if (verbose)
+        std::cout << "cudaMemcpy list to device: " << tm() << " microseconds\n";
+
+    //
+    // Copy the thread / block info to the GPU as well
+    //
+    checkCudaErrors(cudaMalloc((void **)&D_threads, sizeof(dim3)));
+    checkCudaErrors(cudaMalloc((void **)&D_blocks, sizeof(dim3)));
+
+    if (verbose)
+        std::cout << "cudaMalloc device thread data: " << tm() << " microseconds\n";
+    checkCudaErrors(cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
+
+    if (verbose)
+        std::cout << "cudaMemcpy thread data to device: " << tm() << " microseconds\n";
+
+    long *A = D_data;
+    long *B = D_swp;
+
+    long nThreads = threadsPerBlock.x * threadsPerBlock.y * threadsPerBlock.z *
+                    blocksPerGrid.x * blocksPerGrid.y * blocksPerGrid.z;
+
+    //
+    // Slice up the list and give pieces of it to each thread, letting the pieces grow
+    // bigger and bigger until the whole list is sorted
+    //
+    for (int width = 2; width < (size << 1); width <<= 1)
     {
-        if (arr[l] <= arr[r])
+        long slices = size / ((nThreads)*width) + 1;
+
+        if (verbose)
         {
-            aux[i++] = arr[l++];
+            std::cout << "mergeSort - width: " << width
+                      << ", slices: " << slices
+                      << ", nThreads: " << nThreads << '\n';
+            tm();
+        }
+
+        // Actually call the kernel
+        gpu_mergesort<<<blocksPerGrid, threadsPerBlock>>>(A, B, size, width, slices, D_threads, D_blocks);
+
+        if (verbose)
+            std::cout << "call mergesort kernel: " << tm() << " microseconds\n";
+
+        // Switch the input / output arrays instead of copying them around
+        A = A == D_data ? D_swp : D_data;
+        B = B == D_data ? D_swp : D_data;
+    }
+
+    //
+    // Get the list back from the GPU
+    //
+    tm();
+    checkCudaErrors(cudaMemcpy(data, A, size * sizeof(long), cudaMemcpyDeviceToHost));
+    if (verbose)
+        std::cout << "cudaMemcpy list back to host: " << tm() << " microseconds\n";
+
+    // Free the GPU memory
+    checkCudaErrors(cudaFree(A));
+    checkCudaErrors(cudaFree(B));
+    if (verbose)
+        std::cout << "cudaFree: " << tm() << " microseconds\n";
+}
+
+// GPU helper function
+// calculate the id of the current thread
+__device__ unsigned int getIdx(dim3 *threads, dim3 *blocks)
+{
+    int x;
+    return threadIdx.x +
+           threadIdx.y * (x = threads->x) +
+           threadIdx.z * (x *= threads->y) +
+           blockIdx.x * (x *= threads->z) +
+           blockIdx.y * (x *= blocks->z) +
+           blockIdx.z * (x *= blocks->y);
+}
+
+//
+// Perform a full mergesort on our section of the data.
+//
+__global__ void gpu_mergesort(long *source, long *dest, long size, long width, long slices, dim3 *threads, dim3 *blocks)
+{
+    unsigned int idx = getIdx(threads, blocks);
+    long start = width * idx * slices,
+         middle,
+         end;
+
+    for (long slice = 0; slice < slices; slice++)
+    {
+        if (start >= size)
+            break;
+
+        middle = min(start + (width >> 1), size);
+        end = min(start + width, size);
+        gpu_bottomUpMerge(source, dest, start, middle, end);
+        start += width;
+    }
+}
+
+//
+// Finally, sort something
+// gets called by gpu_mergesort() for each slice
+//
+__device__ void gpu_bottomUpMerge(long *source, long *dest, long start, long middle, long end)
+{
+    long i = start;
+    long j = middle;
+    for (long k = start; k < end; k++)
+    {
+        if (i < middle && (j >= end || source[i] < source[j]))
+        {
+            dest[k] = source[i];
+            i++;
         }
         else
         {
-            aux[i++] = arr[r++];
+            dest[k] = source[j];
+            j++;
         }
     }
-
-    while (l <= mid)
-    {
-        aux[i++] = arr[l++];
-    }
-    while (r <= end)
-    {
-        aux[i++] = arr[r++];
-    }
-
-    for (i = start; i <= end; i++)
-    {
-        arr[i] = aux[i];
-    }
 }
 
-inline mergeSortResult_t mergeSortError(cudaError_t cudaStatus, char *msg)
+// read data into a minimal linked list
+typedef struct
 {
-    mergeSortResult_t error;
-    error.cudaStatus = cudaStatus;
-    error.msg = msg;
-    return error;
-}
+    int v;
+    void *next;
+} LinkNode;
 
-inline mergeSortResult_t mergeSortSuccess()
+// helper function for reading numbers from stdin
+// it's 'optimized' not to check validity of the characters it reads in..
+long readList(long **list)
 {
-    mergeSortResult_t success;
-    success.cudaStatus = cudaSuccess;
-    return success;
-}
-
-inline mergeSortResult_t doMergeSortWithCuda(int *arr, unsigned int size_arg, int *dev_arr, int *dev_aux)
-{
-    const unsigned int last = size_arg - 1;
-    const unsigned size = size_arg * sizeof(int);
-    unsigned int threadCount;
-    cudaError_t cudaStatus;
-    char msg[1024];
-
-    // Copy input vectors from host memory to GPU buffers.
-    cudaStatus = cudaMemcpy(dev_arr, arr, size, cudaMemcpyHostToDevice);
-    if (cudaStatus != cudaSuccess)
+    tm();
+    long v, size = 0;
+    LinkNode *node = 0;
+    LinkNode *first = 0;
+    while (std::cin >> v)
     {
-        return mergeSortError(cudaStatus, "cudaMemcpy failed!");
+        LinkNode *next = new LinkNode();
+        next->v = v;
+        if (node)
+            node->next = next;
+        else
+            first = next;
+        node = next;
+        size++;
     }
 
-    for (unsigned int blockSize = 2; blockSize < 2 * size; blockSize *= 2)
+    if (size)
     {
-        threadCount = size / blockSize;
-        if (size % blockSize > 0)
+        *list = new long[size];
+        LinkNode *node = first;
+        long i = 0;
+        while (node)
         {
-            threadCount++;
-        }
-
-        // Launch a kernel on the GPU with one thread for each block.
-        mergeSortKernel<<<1, threadCount>>>(dev_arr, dev_aux, blockSize, last);
-
-        // Check for any errors launching the kernel
-        cudaStatus = cudaGetLastError();
-        if (cudaStatus != cudaSuccess)
-        {
-            sprintf(msg, "mergeSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
-            return mergeSortError(cudaStatus, msg);
-        }
-
-        // cudaDeviceSynchronize waits for the kernel to finish, and returns
-        // any errors encountered during the launch.
-        cudaStatus = cudaDeviceSynchronize();
-        if (cudaStatus != cudaSuccess)
-        {
-            sprintf(msg, "cudaDeviceSynchronize returned error code %d after launching mergeSortKernel!\n", cudaStatus);
-            return mergeSortError(cudaStatus, msg);
+            (*list)[i++] = node->v;
+            node = (LinkNode *)node->next;
         }
     }
 
-    // Copy output vector from GPU buffer to host memory.
-    cudaStatus = cudaMemcpy(arr, dev_arr, size, cudaMemcpyDeviceToHost);
-    if (cudaStatus != cudaSuccess)
-    {
-        return mergeSortError(cudaStatus, "cudaMemcpy failed!");
-    }
+    if (verbose)
+        std::cout << "read stdin: " << tm() << " microseconds\n";
 
-    return mergeSortSuccess();
+    return size;
 }
 
-extern "C" cudaError_t mergeSortWithCuda(int *arr, unsigned int size_arg)
+//
+// Get the time (in microseconds) since the last call to tm();
+// the first value returned by this must not be trusted
+//
+timeval tStart;
+int tm()
 {
-    const unsigned int size = size_arg * sizeof(int);
-    int *dev_arr = 0;
-    int *dev_aux = 0;
-    cudaError_t cudaStatus;
-
-    // Choose which GPU to run on, change this on a multi-GPU system.
-    cudaStatus = cudaSetDevice(0);
-    if (cudaStatus != cudaSuccess)
-    {
-        fprintf(stderr, "cudaSetDevice failed! Do you have a CUDA-capable GPU installed?");
-        return cudaStatus;
-    }
-
-    // Allocate GPU buffers for two vectors (main and aux array).
-    cudaStatus = cudaMalloc((void **)&dev_arr, size);
-    if (cudaStatus != cudaSuccess)
-    {
-        fprintf(stderr, "cudaMalloc failed!");
-        return cudaStatus;
-    }
-
-    cudaStatus = cudaMalloc((void **)&dev_aux, size);
-    if (cudaStatus != cudaSuccess)
-    {
-        fprintf(stderr, "cudaMalloc failed!");
-        cudaFree(dev_arr);
-        return cudaStatus;
-    }
-
-    mergeSortResult_t result = doMergeSortWithCuda(arr, size, dev_arr, dev_aux);
-
-    if (result.cudaStatus != cudaSuccess)
-    {
-        fprintf(stderr, result.msg);
-    }
-
-    cudaFree(dev_arr);
-    cudaFree(dev_aux);
-
-    return cudaStatus;
+    timeval tEnd;
+    gettimeofday(&tEnd, 0);
+    int t = (tEnd.tv_sec - tStart.tv_sec) * 1000000 + tEnd.tv_usec - tStart.tv_usec;
+    tStart = tEnd;
+    return t;
 }

@@ -1,3 +1,4 @@
 #include "cuda_runtime.h"
+#include <helper_cuda.h>
 
-cudaError_t mergeSortWithCuda(int *arr, unsigned int size);
+void mergesort(long *data, long size, dim3 threadsPerBlock, dim3 blocksPerGrid)
