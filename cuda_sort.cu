@@ -3,6 +3,7 @@
 
 __global__ void gpu_mergesort(int *source, int *dest, int size, int width, int slices, dim3 *threads, dim3 *blocks);
 __device__ void gpu_bottomUpMerge(int *source, int *dest, int start, int middle, int end);
+int tm();
 
 void mergesort(int *data, int size)
 {
