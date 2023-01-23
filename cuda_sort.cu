@@ -10,6 +10,16 @@ __global__ void gpu_mergesort(int *source, int *dest, int size, int width, int s
 __device__ void gpu_bottomUpMerge(int *source, int *dest, int start, int middle, int end);
 int tm();
 
+inline cudaError_t checkCuda(cudaError_t result)
+{
+    if (result != cudaSuccess)
+    {
+        fprintf(stderr, "CUDA Runtime Error: %s\n", cudaGetErrorString(result));
+        assert(result == cudaSuccess);
+    }
+    return result;
+}
+
 extern "C" void mergesort(int *data, int size)
 {
     tm();
@@ -34,20 +44,20 @@ extern "C" void mergesort(int *data, int size)
     blocksPerGrid.z = 1;
 
     // Actually allocate the two arrays
-    checkCudaErrors(cudaMalloc((void **)&D_data, size * sizeof(int)));
-    checkCudaErrors(cudaMalloc((void **)&D_swp, size * sizeof(int)));
+    checkCuda(cudaMalloc((void **)&D_data, size * sizeof(int)));
+    checkCuda(cudaMalloc((void **)&D_swp, size * sizeof(int)));
 
     // Copy from our input list into the first array
-    checkCudaErrors(cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
+    checkCuda(cudaMemcpy(D_data, data, size * sizeof(int), cudaMemcpyHostToDevice));
 
     //
     // Copy the thread / block info to the GPU as well
     //
-    checkCudaErrors(cudaMalloc((void **)&D_threads, sizeof(dim3)));
-    checkCudaErrors(cudaMalloc((void **)&D_blocks, sizeof(dim3)));
+    checkCuda(cudaMalloc((void **)&D_threads, sizeof(dim3)));
+    checkCuda(cudaMalloc((void **)&D_blocks, sizeof(dim3)));
 
-    checkCudaErrors(cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
+    checkCuda(cudaMemcpy(D_threads, &threadsPerBlock, sizeof(dim3), cudaMemcpyHostToDevice));
+    checkCuda(cudaMemcpy(D_blocks, &blocksPerGrid, sizeof(dim3), cudaMemcpyHostToDevice));
 
     int *A = D_data;
     int *B = D_swp;
@@ -76,11 +86,11 @@ extern "C" void mergesort(int *data, int size)
     // Get the list back from the GPU
     //
 
-    checkCudaErrors(cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
+    checkCuda(cudaMemcpy(data, A, size * sizeof(int), cudaMemcpyDeviceToHost));
 
     // Free the GPU memory
-    checkCudaErrors(cudaFree(A));
-    checkCudaErrors(cudaFree(B));
+    checkCuda(cudaFree(A));
+    checkCuda(cudaFree(B));
 
     printf("%lf miliseconds\n", (double)tm() / 1000);
 }
