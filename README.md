@@ -57,7 +57,7 @@ Run the MAKEFILE
 To run the program, type:
 
 ```c
-./a.out -a $algorithm -n $number_of_elements -s $state [-P]
+./a.out -a $algorithm -n $number_of_elements -s $state
 ```
 
 ### Parameters
@@ -65,7 +65,6 @@ To run the program, type:
 > 1. -a sorting algorithm
 > 2. -n number of elements
 > 3. -s array state
-> 4. -P print results
 
 | Param |   Value    |
 | ----- | :--------: |
@@ -76,4 +75,3 @@ To run the program, type:
 |       | ascending  |
 |       | descending |
 |       |   almost   |
-| -P    |
