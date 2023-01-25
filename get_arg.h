@@ -8,7 +8,6 @@ struct opt
 {
     int size;
     int array_type;
-    int print_vector;
     enum SortMethod method;
 };
 
