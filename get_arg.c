@@ -35,10 +35,6 @@ void get_args(int argc, char **argv, Options *options)
         case 's': // situation
             options->array_type = get_array_type(optarg);
 
-        case 'P': // print
-            options->print_vector = 1;
-            break;
-
         default:
             break;
         }
